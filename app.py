@@ -21,40 +21,48 @@ require_pin(
 st.markdown("""
 <style>
 
-/* ✅ largura maior no desktop */
+/* ✅ Max largura real no desktop */
 @media (min-width: 900px) {
     .main .block-container {
-        max-width: 1400px;
-        padding-left: 3rem;
-        padding-right: 3rem;
-        padding-top: 2.0rem;
-        padding-bottom: 2.0rem;
+        max-width: 1750px !important;   /* ✅ mais largo que antes */
+        padding-left: 4rem !important;
+        padding-right: 4rem !important;
+        padding-top: 2.0rem !important;
+        padding-bottom: 2.0rem !important;
     }
 }
 
-/* ✅ mobile continua normal */
+/* ✅ Mobile permanece confortável */
 @media (max-width: 899px) {
     .main .block-container {
-        padding-left: 1rem;
-        padding-right: 1rem;
-        padding-top: 1.5rem;
-        padding-bottom: 1.5rem;
+        max-width: 100% !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        padding-top: 1.3rem !important;
+        padding-bottom: 1.3rem !important;
     }
 }
 
-/* ✅ cards padrão */
-.wide-card {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 18px;
-    border-radius: 18px;
-    border: 1px solid rgba(255,255,255,0.08);
-    background: rgba(255,255,255,0.03);
-    box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+/* ✅ Tabelas e dataframes sempre 100% */
+div[data-testid="stDataFrame"] {
+    width: 100% !important;
+}
+div[data-testid="stTable"] {
+    width: 100% !important;
 }
 
+/* ✅ Melhor uso de colunas */
+div[data-testid="stHorizontalBlock"] {
+    gap: 1.2rem !important;
+}
+
+/* ✅ Expande selects e inputs que ficam estreitos */
+div[data-baseweb="select"] {
+    width: 100% !important;
+}
 </style>
 """, unsafe_allow_html=True)
+
 
 st.title("✅ Controle de Cestas Básicas")
 st.write("Use o menu lateral para navegar.")
