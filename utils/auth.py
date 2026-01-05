@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import base64
+import streamlit.components.v1 as components
 
 
 def _get_base64_image(path: str) -> str | None:
@@ -21,6 +22,8 @@ def require_pin(
     actions_top_padding=8    # ✅ quanto desce badge+logout
 ):
     pin = os.getenv("APP_PIN")
+
+    # WhatsApp formatado e link
     w = str(whatsapp).strip()
     whatsapp_link = f"https://wa.me/{w}"
 
@@ -154,6 +157,7 @@ def require_pin(
     # ✅ SIDEBAR HEADER SEMPRE VISÍVEL
     # ==========================
     with st.sidebar:
+        # Logo HTML
         img_html = ""
         img64 = _get_base64_image(logo_path)
         if img64:
@@ -163,18 +167,19 @@ def require_pin(
             </div>
             """
 
-        st.markdown(
+        # ✅ Header usando components.html (sempre renderiza HTML real)
+        components.html(
             f"""
             <div class="sidebar-header">
                 {img_html}
                 <div class="sidebar-title">{app_name}</div>
             </div>
             """,
-            unsafe_allow_html=True
+            height=160
         )
 
-        # ✅ Rodapé fixo sempre visível
-        st.markdown(
+        # ✅ Rodapé usando components.html (sempre renderiza)
+        components.html(
             f"""
             <div class="sidebar-footer">
                 <div class="footer-version">📦 {version}</div>
@@ -182,7 +187,7 @@ def require_pin(
                 <div class="footer-dev">👨‍💻 Desenvolvedor: {developer}</div>
             </div>
             """,
-            unsafe_allow_html=True
+            height=120
         )
 
     # 🔓 sem PIN = livre

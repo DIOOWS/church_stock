@@ -14,8 +14,11 @@ require_pin(
     logo_path="assets/logo.png",
     version="v1.0.0",
     whatsapp="21994391902",
-    developer="Diogo Silva"
+    developer="Diogo Silva",
+    header_top_padding=55,
+    actions_top_padding=25
 )
+
 
 st.title("✅ Controle de Cestas Básicas")
 st.write("Use o menu lateral para navegar.")
