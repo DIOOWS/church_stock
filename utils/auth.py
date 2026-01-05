@@ -8,28 +8,30 @@ def _get_base64_image(path: str) -> str:
         return base64.b64encode(f.read()).decode()
 
 
-def require_pin(app_name="Atitude Stock - Igreja", logo_path="assets/logo.png"):
+def require_pin(
+    app_name="Atitude Stock - Igreja",
+    logo_path="assets/logo.png",
+    version="v1.0.0",
+    contact="Suporte: (21) 99999-9999"
+):
     pin = os.getenv("APP_PIN")
 
     # ==========================
-    # ✅ CSS GLOBAL (sidebar header fixo + logo circular + badge + logout vermelho)
+    # ✅ CSS GLOBAL (header + logo circular + badge + logout + rodapé)
     # ==========================
     st.markdown(
         """
         <style>
-        /* Sidebar padding */
         section[data-testid="stSidebar"] > div {
             padding-top: 10px;
         }
 
-        /* Header do sidebar sempre central */
         .sidebar-header {
             text-align: center;
             margin-top: 4px;
             margin-bottom: 6px;
         }
 
-        /* Logo circular */
         .sidebar-logo {
             display: flex;
             justify-content: center;
@@ -44,7 +46,6 @@ def require_pin(app_name="Atitude Stock - Igreja", logo_path="assets/logo.png"):
             box-shadow: 0px 6px 18px rgba(0,0,0,0.35);
         }
 
-        /* Título */
         .sidebar-title {
             font-size: 17px;
             font-weight: 900;
@@ -52,7 +53,6 @@ def require_pin(app_name="Atitude Stock - Igreja", logo_path="assets/logo.png"):
             padding: 0;
         }
 
-        /* Badge de status */
         .sidebar-badge {
             display: inline-block;
             padding: 6px 12px;
@@ -66,7 +66,6 @@ def require_pin(app_name="Atitude Stock - Igreja", logo_path="assets/logo.png"):
             margin-bottom: 8px;
         }
 
-        /* Botão logout vermelho */
         div.stButton > button {
             background-color: #dc2626 !important;
             color: white !important;
@@ -81,9 +80,41 @@ def require_pin(app_name="Atitude Stock - Igreja", logo_path="assets/logo.png"):
             color: white !important;
         }
 
-        /* Separador menor */
         hr {
             margin: 10px 0px !important;
+        }
+
+        /* ✅ Rodapé fixo no sidebar */
+        .sidebar-footer {
+            position: fixed;
+            bottom: 12px;
+            left: 0;
+            width: 100%;
+            padding: 0 18px;
+            text-align: center;
+            font-size: 12px;
+            color: rgba(255,255,255,0.55);
+            line-height: 1.25;
+            z-index: 9999;
+        }
+
+        .sidebar-footer .footer-version {
+            font-weight: 800;
+            color: rgba(255,255,255,0.75);
+            margin-bottom: 2px;
+        }
+
+        .sidebar-footer .footer-contact {
+            font-weight: 600;
+            color: rgba(255,255,255,0.65);
+        }
+
+        .sidebar-footer a {
+            color: rgba(255,255,255,0.75);
+            text-decoration: none;
+        }
+        .sidebar-footer a:hover {
+            text-decoration: underline;
         }
 
         </style>
@@ -114,40 +145,41 @@ def require_pin(app_name="Atitude Stock - Igreja", logo_path="assets/logo.png"):
             unsafe_allow_html=True
         )
 
-    # ==========================
+        # ✅ Rodapé fixo sempre visível
+        st.markdown(
+            f"""
+            <div class="sidebar-footer">
+                <div class="footer-version">📦 {version}</div>
+                <div class="footer-contact">📞 {contact}</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
     # 🔓 Se não existe PIN, deixa livre
-    # ==========================
     if not pin:
         with st.sidebar:
             st.success("🔓 Acesso livre (sem PIN)")
         return True
 
-    # ==========================
     # Estado inicial
-    # ==========================
     if "pin_ok" not in st.session_state:
         st.session_state.pin_ok = False
 
-    # ==========================
     # ✅ Se autenticado, sidebar mostra badge + logout
-    # ==========================
     if st.session_state.pin_ok:
         with st.sidebar:
             st.markdown(
                 '<div class="sidebar-header"><span class="sidebar-badge">✅ Acesso liberado</span></div>',
                 unsafe_allow_html=True
             )
-
             if st.button("🚪 Sair", use_container_width=True):
                 st.session_state.clear()
                 st.experimental_rerun()
-
             st.markdown("---")
         return True
 
-    # ==========================
     # ✅ Se NÃO autenticado: esconder navegação do menu
-    # ==========================
     st.markdown(
         """
         <style>
@@ -157,9 +189,7 @@ def require_pin(app_name="Atitude Stock - Igreja", logo_path="assets/logo.png"):
         unsafe_allow_html=True
     )
 
-    # ==========================
     # ✅ Tela PIN
-    # ==========================
     st.title("🔐 Acesso Restrito")
     st.caption("Somente equipe autorizada.")
     st.info("Digite o PIN para acessar o sistema.")
