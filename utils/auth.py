@@ -6,7 +6,7 @@ def _get_base64_image(path):
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
 
-def require_pin(app_name="Atitude Stock - Igreja", logo_path="assets/logo.jfif"):
+def require_pin(app_name="Atitude Stock - Igreja", logo_path="assets/logo.png"):
     pin = os.getenv("APP_PIN")
 
     # ==========================
