@@ -2,69 +2,123 @@ import streamlit as st
 import os
 import base64
 
-def _get_base64_image(path):
+
+def _get_base64_image(path: str) -> str:
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
+
 
 def require_pin(app_name="Atitude Stock - Igreja", logo_path="assets/logo.png"):
     pin = os.getenv("APP_PIN")
 
     # ==========================
-    # ✅ CSS GLOBAL (logo circular + botão logout vermelho)
+    # ✅ CSS GLOBAL (sidebar header fixo + logo circular + badge + logout vermelho)
     # ==========================
     st.markdown(
         """
         <style>
-        /* logo circular */
+        /* Sidebar padding */
+        section[data-testid="stSidebar"] > div {
+            padding-top: 10px;
+        }
+
+        /* Header do sidebar sempre central */
+        .sidebar-header {
+            text-align: center;
+            margin-top: 4px;
+            margin-bottom: 6px;
+        }
+
+        /* Logo circular */
         .sidebar-logo {
             display: flex;
             justify-content: center;
-            margin-top: 10px;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
         .sidebar-logo img {
-            width: 110px;
-            height: 110px;
+            width: 95px;
+            height: 95px;
             border-radius: 999px;
             object-fit: cover;
-            border: 3px solid rgba(255,255,255,0.25);
-            box-shadow: 0px 4px 12px rgba(0,0,0,0.35);
+            border: 3px solid rgba(255,255,255,0.18);
+            box-shadow: 0px 6px 18px rgba(0,0,0,0.35);
         }
 
-        /* botão logout vermelho */
+        /* Título */
+        .sidebar-title {
+            font-size: 17px;
+            font-weight: 900;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Badge de status */
+        .sidebar-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(34, 197, 94, 0.18);
+            border: 1px solid rgba(34, 197, 94, 0.35);
+            color: #a7f3d0;
+            font-size: 13px;
+            font-weight: 800;
+            margin-top: 10px;
+            margin-bottom: 8px;
+        }
+
+        /* Botão logout vermelho */
         div.stButton > button {
             background-color: #dc2626 !important;
             color: white !important;
             border-radius: 12px !important;
-            font-weight: 700 !important;
+            font-weight: 900 !important;
             border: none !important;
-            padding: 0.65em 1em !important;
+            padding: 0.70em 1em !important;
+            margin-top: 6px !important;
         }
         div.stButton > button:hover {
             background-color: #b91c1c !important;
             color: white !important;
         }
+
+        /* Separador menor */
+        hr {
+            margin: 10px 0px !important;
+        }
+
         </style>
         """,
         unsafe_allow_html=True
     )
 
     # ==========================
-    # 🔓 Sem PIN = modo aberto
+    # ✅ SIDEBAR HEADER SEMPRE VISÍVEL
+    # ==========================
+    with st.sidebar:
+        img_html = ""
+        if logo_path and os.path.exists(logo_path):
+            img64 = _get_base64_image(logo_path)
+            img_html = f"""
+            <div class="sidebar-logo">
+                <img src="data:image/png;base64,{img64}">
+            </div>
+            """
+
+        st.markdown(
+            f"""
+            <div class="sidebar-header">
+                {img_html}
+                <div class="sidebar-title">{app_name}</div>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
+    # ==========================
+    # 🔓 Se não existe PIN, deixa livre
     # ==========================
     if not pin:
         with st.sidebar:
-            if logo_path and os.path.exists(logo_path):
-                img64 = _get_base64_image(logo_path)
-                st.markdown(
-                    f"""
-                    <div class="sidebar-logo">
-                        <img src="data:image/png;base64,{img64}">
-                    </div>
-                    """,
-                    unsafe_allow_html=True
-                )
-            st.markdown(f"### {app_name}")
             st.success("🔓 Acesso livre (sem PIN)")
         return True
 
@@ -75,54 +129,39 @@ def require_pin(app_name="Atitude Stock - Igreja", logo_path="assets/logo.png"):
         st.session_state.pin_ok = False
 
     # ==========================
-    # ✅ SIDEBAR FIXO SEMPRE
+    # ✅ Se autenticado, sidebar mostra badge + logout
     # ==========================
-    with st.sidebar:
-        # Logo circular (se existir)
-        if logo_path and os.path.exists(logo_path):
-            img64 = _get_base64_image(logo_path)
+    if st.session_state.pin_ok:
+        with st.sidebar:
             st.markdown(
-                f"""
-                <div class="sidebar-logo">
-                    <img src="data:image/png;base64,{img64}">
-                </div>
-                """,
+                '<div class="sidebar-header"><span class="sidebar-badge">✅ Acesso liberado</span></div>',
                 unsafe_allow_html=True
             )
-
-        st.markdown(f"### {app_name}")
-        st.markdown("---")
-
-        if st.session_state.pin_ok:
-            st.success("✅ Acesso liberado")
 
             if st.button("🚪 Sair", use_container_width=True):
                 st.session_state.clear()
                 st.experimental_rerun()
 
             st.markdown("---")
-        else:
-            # esconder navegação enquanto não autenticado
-            st.markdown(
-                """
-                <style>
-                [data-testid="stSidebarNav"] {display: none;}
-                </style>
-                """,
-                unsafe_allow_html=True
-            )
-
-    # ==========================
-    # ✅ Se já autenticado, libera
-    # ==========================
-    if st.session_state.pin_ok:
         return True
 
     # ==========================
-    # ✅ Tela de PIN
+    # ✅ Se NÃO autenticado: esconder navegação do menu
+    # ==========================
+    st.markdown(
+        """
+        <style>
+        [data-testid="stSidebarNav"] {display: none;}
+        </style>
+        """,
+        unsafe_allow_html=True
+    )
+
+    # ==========================
+    # ✅ Tela PIN
     # ==========================
     st.title("🔐 Acesso Restrito")
-    st.caption(app_name)
+    st.caption("Somente equipe autorizada.")
     st.info("Digite o PIN para acessar o sistema.")
 
     typed = st.text_input("PIN", type="password")
