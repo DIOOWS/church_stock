@@ -1,7 +1,6 @@
 import streamlit as st
 import os
 import base64
-import streamlit.components.v1 as components
 
 
 def _get_base64_image(path: str) -> str | None:
@@ -18,8 +17,8 @@ def require_pin(
     version="v1.0.0",
     whatsapp="21994391902",
     developer="Diogo Silva",
-    header_top_padding=28,   # ✅ quanto desce o header (logo+titulo)
-    actions_top_padding=8    # ✅ quanto desce badge+logout
+    header_top_padding=28,
+    actions_top_padding=8
 ):
     pin = os.getenv("APP_PIN")
 
@@ -41,14 +40,12 @@ def require_pin(
             padding-top: 10px;
         }}
 
-        /* ✅ espaço acima do header (desce tudo) */
         .sidebar-header {{
             text-align: center;
             margin-top: {header_top_padding}px;
             margin-bottom: 6px;
         }}
 
-        /* logo circular */
         .sidebar-logo {{
             display: flex;
             justify-content: center;
@@ -63,7 +60,6 @@ def require_pin(
             box-shadow: 0px 6px 18px rgba(0,0,0,0.35);
         }}
 
-        /* título */
         .sidebar-title {{
             font-size: 17px;
             font-weight: 900;
@@ -71,14 +67,12 @@ def require_pin(
             padding: 0;
         }}
 
-        /* ✅ área do badge + logout */
         .sidebar-actions {{
             text-align: center;
             margin-top: {actions_top_padding}px;
             margin-bottom: 10px;
         }}
 
-        /* badge */
         .sidebar-badge {{
             display: inline-block;
             padding: 6px 12px;
@@ -91,7 +85,6 @@ def require_pin(
             margin-bottom: 10px;
         }}
 
-        /* botão logout vermelho */
         div.stButton > button {{
             background-color: #dc2626 !important;
             color: white !important;
@@ -113,7 +106,7 @@ def require_pin(
         /* ✅ Rodapé fixo no sidebar */
         .sidebar-footer {{
             position: fixed;
-            bottom: 10px;
+            bottom: 12px;
             left: 0;
             width: 100%;
             padding: 0 18px;
@@ -157,7 +150,6 @@ def require_pin(
     # ✅ SIDEBAR HEADER SEMPRE VISÍVEL
     # ==========================
     with st.sidebar:
-        # Logo HTML
         img_html = ""
         img64 = _get_base64_image(logo_path)
         if img64:
@@ -167,19 +159,17 @@ def require_pin(
             </div>
             """
 
-        # ✅ Header usando components.html (sempre renderiza HTML real)
-        components.html(
+        st.markdown(
             f"""
             <div class="sidebar-header">
                 {img_html}
                 <div class="sidebar-title">{app_name}</div>
             </div>
             """,
-            height=160
+            unsafe_allow_html=True
         )
 
-        # ✅ Rodapé usando components.html (sempre renderiza)
-        components.html(
+        st.markdown(
             f"""
             <div class="sidebar-footer">
                 <div class="footer-version">📦 {version}</div>
@@ -187,7 +177,7 @@ def require_pin(
                 <div class="footer-dev">👨‍💻 Desenvolvedor: {developer}</div>
             </div>
             """,
-            height=120
+            unsafe_allow_html=True
         )
 
     # 🔓 sem PIN = livre
@@ -196,7 +186,6 @@ def require_pin(
             st.success("🔓 Acesso livre (sem PIN)")
         return True
 
-    # estado inicial
     if "pin_ok" not in st.session_state:
         st.session_state.pin_ok = False
 
@@ -215,8 +204,6 @@ def require_pin(
             if st.button("🚪 Sair", use_container_width=True):
                 st.session_state.clear()
                 st.rerun()
-
-            st.markdown("---")
         return True
 
     # ✅ não logado: esconder menu
