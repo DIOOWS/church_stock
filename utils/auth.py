@@ -12,7 +12,7 @@ def _get_base64_image(path: str) -> str | None:
 
 
 def require_pin(
-    app_name="Atitude Stock - Igreja",
+    app_name="Atitude Social",
     logo_path="assets/logo.png",
     version="v1.0.0",
     whatsapp="21994391902",
