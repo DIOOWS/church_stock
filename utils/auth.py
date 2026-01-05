@@ -16,9 +16,10 @@ def require_pin(
     logo_path="assets/logo.png",
     version="v1.0.0",
     whatsapp="21994391902",
-    developer="Diogo Silva"
+    developer="Diogo Silva",
+    header_top_padding=28,   # ✅ quanto desce o header (logo+titulo)
+    actions_top_padding=8    # ✅ quanto desce badge+logout
 ):
-
     pin = os.getenv("APP_PIN")
     w = str(whatsapp).strip()
     whatsapp_link = f"https://wa.me/{w}"
@@ -27,41 +28,55 @@ def require_pin(
     if len(w) >= 11:
         display = f"({w[:2]}) {w[2:7]}-{w[7:]}"
 
+    # ==========================
+    # ✅ CSS GLOBAL
+    # ==========================
     st.markdown(
-        """
+        f"""
         <style>
-        section[data-testid="stSidebar"] > div {
+        section[data-testid="stSidebar"] > div {{
             padding-top: 10px;
-        }
+        }}
 
-        .sidebar-header {
+        /* ✅ espaço acima do header (desce tudo) */
+        .sidebar-header {{
             text-align: center;
-            margin-top: 4px;
+            margin-top: {header_top_padding}px;
             margin-bottom: 6px;
-        }
+        }}
 
-        .sidebar-logo {
+        /* logo circular */
+        .sidebar-logo {{
             display: flex;
             justify-content: center;
             margin-bottom: 8px;
-        }
-        .sidebar-logo img {
-            width: 95px;
-            height: 95px;
+        }}
+        .sidebar-logo img {{
+            width: 92px;
+            height: 92px;
             border-radius: 999px;
             object-fit: cover;
             border: 3px solid rgba(255,255,255,0.18);
             box-shadow: 0px 6px 18px rgba(0,0,0,0.35);
-        }
+        }}
 
-        .sidebar-title {
+        /* título */
+        .sidebar-title {{
             font-size: 17px;
             font-weight: 900;
             margin: 0;
             padding: 0;
-        }
+        }}
 
-        .sidebar-badge {
+        /* ✅ área do badge + logout */
+        .sidebar-actions {{
+            text-align: center;
+            margin-top: {actions_top_padding}px;
+            margin-bottom: 10px;
+        }}
+
+        /* badge */
+        .sidebar-badge {{
             display: inline-block;
             padding: 6px 12px;
             border-radius: 999px;
@@ -70,31 +85,32 @@ def require_pin(
             color: #a7f3d0;
             font-size: 13px;
             font-weight: 800;
-            margin-top: 10px;
-            margin-bottom: 8px;
-        }
+            margin-bottom: 10px;
+        }}
 
-        div.stButton > button {
+        /* botão logout vermelho */
+        div.stButton > button {{
             background-color: #dc2626 !important;
             color: white !important;
             border-radius: 12px !important;
             font-weight: 900 !important;
             border: none !important;
             padding: 0.70em 1em !important;
-            margin-top: 6px !important;
-        }
-        div.stButton > button:hover {
+            margin-top: 0px !important;
+        }}
+        div.stButton > button:hover {{
             background-color: #b91c1c !important;
             color: white !important;
-        }
+        }}
 
-        hr {
+        hr {{
             margin: 10px 0px !important;
-        }
+        }}
 
-        .sidebar-footer {
+        /* ✅ Rodapé fixo no sidebar */
+        .sidebar-footer {{
             position: fixed;
-            bottom: 12px;
+            bottom: 10px;
             left: 0;
             width: 100%;
             padding: 0 18px;
@@ -103,38 +119,40 @@ def require_pin(
             color: rgba(255,255,255,0.55);
             line-height: 1.35;
             z-index: 9999;
-        }
+        }}
 
-        .sidebar-footer .footer-version {
+        .sidebar-footer .footer-version {{
             font-weight: 900;
             color: rgba(255,255,255,0.78);
             margin-bottom: 3px;
-        }
+        }}
 
-        .sidebar-footer .footer-contact {
+        .sidebar-footer .footer-contact {{
             font-weight: 700;
             color: rgba(255,255,255,0.70);
             margin-bottom: 3px;
-        }
+        }}
 
-        .sidebar-footer .footer-dev {
+        .sidebar-footer .footer-dev {{
             font-weight: 600;
             color: rgba(255,255,255,0.60);
-        }
+        }}
 
-        .sidebar-footer a {
+        .sidebar-footer a {{
             color: rgba(255,255,255,0.78);
             text-decoration: none;
-        }
-        .sidebar-footer a:hover {
+        }}
+        .sidebar-footer a:hover {{
             text-decoration: underline;
-        }
+        }}
         </style>
         """,
         unsafe_allow_html=True
     )
 
-    # ✅ SIDEBAR: header sempre visível
+    # ==========================
+    # ✅ SIDEBAR HEADER SEMPRE VISÍVEL
+    # ==========================
     with st.sidebar:
         img_html = ""
         img64 = _get_base64_image(logo_path)
@@ -155,6 +173,7 @@ def require_pin(
             unsafe_allow_html=True
         )
 
+        # ✅ Rodapé fixo sempre visível
         st.markdown(
             f"""
             <div class="sidebar-footer">
@@ -172,17 +191,26 @@ def require_pin(
             st.success("🔓 Acesso livre (sem PIN)")
         return True
 
+    # estado inicial
     if "pin_ok" not in st.session_state:
         st.session_state.pin_ok = False
 
     # ✅ logado
     if st.session_state.pin_ok:
         with st.sidebar:
-            st.markdown('<div class="sidebar-header"><span class="sidebar-badge">✅ Acesso liberado</span></div>',
-                        unsafe_allow_html=True)
+            st.markdown(
+                """
+                <div class="sidebar-actions">
+                    <span class="sidebar-badge">✅ Acesso liberado</span>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
             if st.button("🚪 Sair", use_container_width=True):
                 st.session_state.clear()
                 st.rerun()
+
             st.markdown("---")
         return True
 
@@ -196,6 +224,7 @@ def require_pin(
         unsafe_allow_html=True
     )
 
+    # ✅ Tela PIN
     st.title("🔐 Acesso Restrito")
     st.caption("Somente equipe autorizada.")
     st.info("Digite o PIN para acessar o sistema.")
