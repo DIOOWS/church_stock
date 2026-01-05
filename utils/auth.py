@@ -17,12 +17,11 @@ def require_pin(
     version="v1.0.0",
     whatsapp="21994391902",
     developer="Diogo Silva",
-    header_top_padding=28,
-    actions_top_padding=8
+    header_top_padding=30,
+    actions_top_padding=16
 ):
     pin = os.getenv("APP_PIN")
 
-    # WhatsApp formatado e link
     w = str(whatsapp).strip()
     whatsapp_link = f"https://wa.me/{w}"
 
@@ -30,14 +29,17 @@ def require_pin(
     if len(w) >= 11:
         display = f"({w[:2]}) {w[2:7]}-{w[7:]}"
 
-    # ==========================
-    # ✅ CSS GLOBAL
-    # ==========================
+    # ✅ CSS Sidebar
     st.markdown(
         f"""
         <style>
+        section[data-testid="stSidebar"] {{
+            position: relative;
+        }}
+
         section[data-testid="stSidebar"] > div {{
             padding-top: 10px;
+            padding-bottom: 190px; /* ✅ reserva espaço footer + logout */
         }}
 
         .sidebar-header {{
@@ -49,7 +51,7 @@ def require_pin(
         .sidebar-logo {{
             display: flex;
             justify-content: center;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }}
         .sidebar-logo img {{
             width: 92px;
@@ -60,17 +62,18 @@ def require_pin(
             box-shadow: 0px 6px 18px rgba(0,0,0,0.35);
         }}
 
-        .sidebar-title {{
-            font-size: 17px;
-            font-weight: 900;
-            margin: 0;
-            padding: 0;
+        section[data-testid="stSidebar"] h3 {{
+            text-align: center;
+            font-size: 17px !important;
+            font-weight: 900 !important;
+            margin-top: 0px !important;
+            margin-bottom: 14px !important;
         }}
 
         .sidebar-actions {{
             text-align: center;
             margin-top: {actions_top_padding}px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }}
 
         .sidebar-badge {{
@@ -83,6 +86,69 @@ def require_pin(
             font-size: 13px;
             font-weight: 800;
             margin-bottom: 10px;
+        }}
+
+        /* ✅ separador elegante no footer */
+        .footer-divider {{
+            height: 1px;
+            width: 100%;
+            background: linear-gradient(
+                to right,
+                rgba(255,255,255,0.02),
+                rgba(255,255,255,0.15),
+                rgba(255,255,255,0.02)
+            );
+            margin: 10px 0 12px 0;
+        }}
+
+        /* ✅ FOOTER FIXO */
+        .sidebar-footer {{
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            padding: 14px 14px 16px 14px;
+            background: rgba(15, 23, 42, 0.96);
+            z-index: 9999;
+        }}
+
+        /* ✅ card bonito */
+        .footer-card {{
+            padding: 12px 12px 10px 12px;
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.10);
+            background: rgba(255,255,255,0.04);
+            box-shadow: 0px 12px 30px rgba(0,0,0,0.32);
+            text-align: center;
+            font-size: 12px;
+            color: rgba(255,255,255,0.75);
+            line-height: 1.45;
+        }}
+
+        .footer-version {{
+            font-weight: 900;
+            margin-bottom: 4px;
+            font-size: 12px;
+            color: rgba(255,255,255,0.92);
+        }}
+
+        .footer-row {{
+            margin: 4px 0;
+            font-weight: 650;
+            color: rgba(255,255,255,0.75);
+        }}
+
+        .footer-row strong {{
+            color: rgba(255,255,255,0.92);
+        }}
+
+        .footer-row a {{
+            color: rgba(255,255,255,0.88);
+            font-weight: 800;
+            text-decoration: none;
+        }}
+        .footer-row a:hover {{
+            text-decoration: underline;
         }}
 
         div.stButton > button {{
@@ -98,102 +164,59 @@ def require_pin(
             background-color: #b91c1c !important;
             color: white !important;
         }}
-
-        hr {{
-            margin: 10px 0px !important;
-        }}
-
-        /* ✅ Rodapé fixo no sidebar */
-        .sidebar-footer {{
-            position: fixed;
-            bottom: 12px;
-            left: 0;
-            width: 100%;
-            padding: 0 18px;
-            text-align: center;
-            font-size: 12px;
-            color: rgba(255,255,255,0.55);
-            line-height: 1.35;
-            z-index: 9999;
-        }}
-
-        .sidebar-footer .footer-version {{
-            font-weight: 900;
-            color: rgba(255,255,255,0.78);
-            margin-bottom: 3px;
-        }}
-
-        .sidebar-footer .footer-contact {{
-            font-weight: 700;
-            color: rgba(255,255,255,0.70);
-            margin-bottom: 3px;
-        }}
-
-        .sidebar-footer .footer-dev {{
-            font-weight: 600;
-            color: rgba(255,255,255,0.60);
-        }}
-
-        .sidebar-footer a {{
-            color: rgba(255,255,255,0.78);
-            text-decoration: none;
-        }}
-        .sidebar-footer a:hover {{
-            text-decoration: underline;
-        }}
         </style>
         """,
         unsafe_allow_html=True
     )
 
-    # ==========================
-    # ✅ SIDEBAR HEADER SEMPRE VISÍVEL
-    # ==========================
-    with st.sidebar:
-        img_html = ""
-        img64 = _get_base64_image(logo_path)
-        if img64:
-            img_html = f"""
-            <div class="sidebar-logo">
-                <img src="data:image/png;base64,{img64}">
-            </div>
-            """
-
-        st.markdown(
-            f"""
-            <div class="sidebar-header">
-                {img_html}
-                <div class="sidebar-title">{app_name}</div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
+    # ✅ Função do footer card
+    def render_footer():
         st.markdown(
             f"""
             <div class="sidebar-footer">
-                <div class="footer-version">📦 {version}</div>
-                <div class="footer-contact">📞 <a href="{whatsapp_link}" target="_blank">WhatsApp: {display}</a></div>
-                <div class="footer-dev">👨‍💻 Desenvolvedor: {developer}</div>
+                <div class="footer-divider"></div>
+                <div class="footer-card">
+                    <div class="footer-version">📦 {version}</div>
+                    <div class="footer-row">📞 <a href="{whatsapp_link}" target="_blank">WhatsApp: {display}</a></div>
+                    <div class="footer-row">👨‍💻 <strong>{developer}</strong></div>
+                </div>
             </div>
             """,
             unsafe_allow_html=True
         )
 
-    # 🔓 sem PIN = livre
+    # ✅ Sidebar Header sempre aparece
+    with st.sidebar:
+        img64 = _get_base64_image(logo_path)
+        if img64:
+            st.markdown(
+                f"""
+                <div class="sidebar-header">
+                    <div class="sidebar-logo">
+                        <img src="data:image/png;base64,{img64}">
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        st.markdown(f"### {app_name}")
+
+    # 🔓 Sem PIN = livre
     if not pin:
         with st.sidebar:
             st.success("🔓 Acesso livre (sem PIN)")
+            render_footer()
         return True
 
     if "pin_ok" not in st.session_state:
         st.session_state.pin_ok = False
 
-    # ✅ logado
+    # ✅ LOGADO
     if st.session_state.pin_ok:
         with st.sidebar:
             st.markdown(
-                """
+                f"""
                 <div class="sidebar-actions">
                     <span class="sidebar-badge">✅ Acesso liberado</span>
                 </div>
@@ -204,9 +227,11 @@ def require_pin(
             if st.button("🚪 Sair", use_container_width=True):
                 st.session_state.clear()
                 st.rerun()
+
+            render_footer()
         return True
 
-    # ✅ não logado: esconder menu
+    # ✅ DESLOGADO (esconde menu)
     st.markdown(
         """
         <style>
@@ -215,6 +240,9 @@ def require_pin(
         """,
         unsafe_allow_html=True
     )
+
+    with st.sidebar:
+        render_footer()
 
     # ✅ Tela PIN
     st.title("🔐 Acesso Restrito")
