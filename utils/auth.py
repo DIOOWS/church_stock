@@ -1,12 +1,13 @@
 import streamlit as st
 import os
 
-def require_pin(app_name="Controle de Cestas - Igreja"):
+def require_pin(app_name="Controle de Cestas - Igreja", logo_path="assets/logo.png"):
     """
     Proteção simples por PIN para apps Streamlit sem login.
     - Usa APP_PIN do .env / Secrets
     - Guarda status em st.session_state["pin_ok"]
     - Exibe botão de logout no sidebar
+    - Exibe logo na tela de PIN se existir
     """
 
     pin = os.getenv("APP_PIN")
@@ -36,6 +37,10 @@ def require_pin(app_name="Controle de Cestas - Igreja"):
     # =======================
     st.set_page_config(page_title=app_name, layout="centered")
 
+    # ✅ Logo centralizado (se existir)
+    if logo_path and os.path.exists(logo_path):
+        st.image(logo_path, width=200)
+
     st.markdown(
         f"""
         <div style="text-align:center;">
@@ -64,7 +69,8 @@ def require_pin(app_name="Controle de Cestas - Igreja"):
         login_btn = st.button("✅ Entrar", use_container_width=True)
 
     with col2:
-        st.button("🔄 Limpar", on_click=lambda: st.session_state.update({"pin_ok": False}), use_container_width=True)
+        if st.button("🔄 Limpar", use_container_width=True):
+            st.experimental_rerun()
 
     if login_btn:
         if typed == pin:
