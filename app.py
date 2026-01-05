@@ -4,7 +4,6 @@ load_dotenv()
 import streamlit as st
 import os
 
-
 st.set_page_config(page_title="Controle de Cestas - Igreja", layout="wide")
 
 pin = os.getenv("APP_PIN")
