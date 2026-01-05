@@ -4,6 +4,9 @@ from utils.db import fetch_table, insert_row, update_row, delete_row
 from utils.calculations import analyze_basket
 from utils.auth import require_pin
 require_pin()
+from utils.ui import apply_global_layout
+apply_global_layout()
+
 
 
 st.title("🧺 Tipos de Cesta — Cadastro e Receita")

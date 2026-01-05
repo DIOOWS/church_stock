@@ -5,6 +5,9 @@ from utils.calculations import basket_summary
 from utils.operations import quick_basket_checkout, register_delivery, register_delivery_custom_items
 from utils.auth import require_pin
 require_pin()
+from utils.ui import apply_global_layout
+apply_global_layout()
+
 
 
 st.title("📦 Dashboard — Cestas disponíveis (montáveis)")

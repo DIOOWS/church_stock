@@ -4,6 +4,9 @@ from utils.db import fetch_table
 from utils.operations import add_stock
 from utils.auth import require_pin
 require_pin()
+from utils.ui import apply_global_layout
+apply_global_layout()
+
 
 
 st.title("📥 Estoque — Entrada / Ajuste")

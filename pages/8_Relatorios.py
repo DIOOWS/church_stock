@@ -5,6 +5,9 @@ from datetime import datetime, timedelta
 from utils.db import fetch_table
 from utils.auth import require_pin
 require_pin()
+from utils.ui import apply_global_layout
+apply_global_layout()
+
 
 
 

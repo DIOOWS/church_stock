@@ -3,6 +3,9 @@ import pandas as pd
 from utils.db import fetch_table, insert_row, update_row, delete_row
 from utils.auth import require_pin
 require_pin()
+from utils.ui import apply_global_layout
+apply_global_layout()
+
 
 
 st.title("🏠 Famílias / Beneficiários")
