@@ -3,15 +3,24 @@ import pandas as pd
 from utils.db import fetch_table, insert_row, update_row, delete_row
 from utils.calculations import analyze_basket
 
-st.title("🧺 Tipos de Cesta — Cadastro e Receita (com validação de estoque)")
+st.title("🧺 Tipos de Cesta — Cadastro e Receita")
 
-baskets = fetch_table("basket_types", order="name")
 products = fetch_table("products", order="name")
 prod_id_to_name = {p["id"]: p["name"] for p in products}
 
 if not products:
     st.warning("Cadastre produtos antes de criar cestas.")
     st.stop()
+
+# ==========================
+# FILTRO: MOSTRAR DESATIVADAS
+# ==========================
+show_inactive = st.checkbox("Mostrar cestas desativadas", value=False)
+
+if show_inactive:
+    baskets = fetch_table("basket_types", order="name")
+else:
+    baskets = fetch_table("basket_types", {"is_active": True}, order="name")
 
 # ==========================
 # CRIAR NOVA CESTA
@@ -28,7 +37,11 @@ with st.form("add_basket", clear_on_submit=True):
             st.error("Nome obrigatório.")
         else:
             try:
-                insert_row("basket_types", {"name": name.strip(), "description": desc})
+                insert_row("basket_types", {
+                    "name": name.strip(),
+                    "description": desc,
+                    "is_active": True
+                })
                 st.success("✅ Cesta cadastrada!")
                 st.experimental_rerun()
             except Exception as e:
@@ -42,11 +55,12 @@ if not baskets:
     st.stop()
 
 # ==========================
-# LISTAGEM DE CESTAS
+# LISTAGEM
 # ==========================
 st.subheader("📋 Cestas cadastradas")
-df = pd.DataFrame(baskets)[["name", "description", "created_at"]]
-df.columns = ["Cesta", "Descrição", "Criado em"]
+
+df = pd.DataFrame(baskets)[["name", "description", "is_active", "created_at"]]
+df.columns = ["Cesta", "Descrição", "Ativa?", "Criado em"]
 st.dataframe(df, use_container_width=True, height=250)
 
 st.divider()
@@ -54,7 +68,7 @@ st.divider()
 # ==========================
 # SELECIONAR CESTA
 # ==========================
-st.subheader("🔍 Selecionar e gerenciar cesta")
+st.subheader("🔍 Selecionar cesta para editar")
 
 basket_map = {b["name"]: b for b in baskets}
 selected_basket_name = st.selectbox("Selecione um tipo de cesta", list(basket_map.keys()))
@@ -81,37 +95,17 @@ with colB:
         else:
             st.success("✅ Próxima cesta também completa")
 
-if checklist:
-    st.subheader("📌 Checklist por item (estoque x receita)")
-    rows = []
-    for it in checklist:
-        rows.append({
-            "Produto": prod_id_to_name.get(it["product_id"], "???"),
-            "Estoque": it["stock"],
-            "Necessário (por cesta)": it["required"],
-            "Sobra após completas": it["remaining"],
-            "Ok para +1?": "✅" if it["ok_for_next"] else "❌",
-            "Falta para +1": it["missing_for_next"]
-        })
-    st.dataframe(pd.DataFrame(rows), use_container_width=True)
-
-    if faltas:
-        st.error("❌ Para montar mais 1 cesta, falta:")
-        for pid, falta in faltas.items():
-            st.write(f"- **{prod_id_to_name.get(pid, '???')}**: falta **{falta:.2f}**")
-    else:
-        st.success("✅ Com o estoque atual, você consegue montar mais 1 cesta completa.")
-
 st.divider()
 
 # ==========================
-# EDITAR / EXCLUIR CESTA
+# EDITAR / DESATIVAR CESTA
 # ==========================
-st.subheader("✏️ Editar / 🗑️ Excluir cesta")
+st.subheader("✏️ Editar / 🗑️ Desativar cesta")
 
 with st.form("edit_basket"):
     new_name = st.text_input("Nome", value=b["name"])
     new_desc = st.text_area("Descrição", value=b.get("description") or "")
+    active = st.checkbox("Cesta ativa", value=bool(b.get("is_active", True)))
     submitted = st.form_submit_button("Salvar alterações")
 
     if submitted:
@@ -119,25 +113,30 @@ with st.form("edit_basket"):
             st.error("Nome obrigatório.")
         else:
             try:
-                update_row("basket_types", {"id": b["id"]}, {"name": new_name.strip(), "description": new_desc})
+                update_row("basket_types", {"id": b["id"]}, {
+                    "name": new_name.strip(),
+                    "description": new_desc,
+                    "is_active": active
+                })
                 st.success("✅ Cesta atualizada!")
                 st.experimental_rerun()
             except Exception as e:
-                st.error("❌ Erro ao atualizar. Talvez nome já exista.")
+                st.error("❌ Erro ao atualizar.")
                 st.exception(e)
 
-st.warning("⚠️ Excluir cesta pode afetar histórico de entregas.")
-confirm_del = st.checkbox("Confirmo exclusão desta cesta.")
-if st.button("Excluir cesta"):
+st.warning("⚠️ Desativar não apaga histórico de entregas. (Recomendado)")
+confirm_del = st.checkbox("Confirmo desativar esta cesta.")
+
+if st.button("Desativar cesta"):
     if not confirm_del:
         st.error("Marque confirmação.")
     else:
         try:
-            delete_row("basket_types", {"id": b["id"]})
-            st.success("✅ Cesta excluída!")
+            update_row("basket_types", {"id": b["id"]}, {"is_active": False})
+            st.success("✅ Cesta desativada! Ela não aparecerá mais no dashboard.")
             st.experimental_rerun()
         except Exception as e:
-            st.error("❌ Não foi possível excluir (pode ter entregas registradas).")
+            st.error("❌ Erro ao desativar cesta.")
             st.exception(e)
 
 st.divider()
@@ -167,20 +166,17 @@ else:
 st.divider()
 
 # ==========================
-# ADICIONAR ITEM (COM BUSCA)
+# ADICIONAR/ATUALIZAR ITEM
 # ==========================
-st.subheader("➕ Adicionar item na cesta")
+st.subheader("➕ Adicionar / Atualizar item na cesta")
 
 prod_search = st.text_input("Buscar produto", placeholder="Ex: arroz / açúcar")
-filtered_products = []
 
 if prod_search.strip():
     s = prod_search.strip().lower()
-    for p in products:
-        if s in p["name"].lower():
-            filtered_products.append(p)
+    filtered_products = [p for p in products if s in p["name"].lower()]
 else:
-    filtered_products = products[:30]  # não pesa
+    filtered_products = products[:30]
 
 if not filtered_products:
     st.warning("Nenhum produto encontrado com essa busca.")
@@ -190,19 +186,39 @@ else:
     with st.form("add_item"):
         prod_name = st.selectbox("Produto", list(filtered_map.keys()))
         qty_req = st.number_input("Quantidade necessária", min_value=0.1, step=0.1, value=1.0)
-        submitted = st.form_submit_button("Adicionar")
+        submitted = st.form_submit_button("Salvar item")
 
         if submitted:
             try:
-                insert_row("basket_type_items", {
-                    "basket_type_id": b["id"],
-                    "product_id": filtered_map[prod_name]["id"],
-                    "quantity_required": float(qty_req)
-                })
-                st.success("✅ Item adicionado!")
+                product_id = filtered_map[prod_name]["id"]
+
+                # ✅ verifica se já existe
+                existing = fetch_table(
+                    "basket_type_items",
+                    {"basket_type_id": b["id"], "product_id": product_id}
+                )
+
+                if existing:
+                    # ✅ atualiza quantidade
+                    update_row(
+                        "basket_type_items",
+                        {"id": existing[0]["id"]},
+                        {"quantity_required": float(qty_req)}
+                    )
+                    st.success("✅ Item já existia — quantidade atualizada!")
+                else:
+                    # ✅ insere novo
+                    insert_row("basket_type_items", {
+                        "basket_type_id": b["id"],
+                        "product_id": product_id,
+                        "quantity_required": float(qty_req)
+                    })
+                    st.success("✅ Item adicionado!")
+
                 st.experimental_rerun()
+
             except Exception as e:
-                st.error("❌ Erro ao adicionar. Talvez o produto já esteja nesta cesta.")
+                st.error("❌ Erro ao salvar item.")
                 st.exception(e)
 
 st.divider()

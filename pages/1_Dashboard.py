@@ -6,7 +6,7 @@ from utils.operations import quick_basket_checkout, register_delivery
 
 st.title("📦 Dashboard — Cestas disponíveis (montáveis)")
 
-baskets = fetch_table("basket_types", order="name")
+baskets = fetch_table("basket_types", {"is_active": True}, order="name")
 
 if not baskets:
     st.warning("Nenhum tipo de cesta cadastrado ainda.")
