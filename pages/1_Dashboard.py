@@ -3,6 +3,9 @@ import pandas as pd
 from utils.db import fetch_table
 from utils.calculations import basket_summary
 from utils.operations import quick_basket_checkout, register_delivery, register_delivery_custom_items
+from utils.auth import require_pin
+require_pin()
+
 
 st.title("📦 Dashboard — Cestas disponíveis (montáveis)")
 

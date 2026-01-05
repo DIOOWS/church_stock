@@ -1,6 +1,9 @@
 import streamlit as st
 import pandas as pd
 from utils.db import fetch_table, insert_row, update_row, delete_row
+from utils.auth import require_pin
+require_pin()
+
 
 st.title("👥 Supervisores e Líderes")
 

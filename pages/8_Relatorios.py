@@ -3,6 +3,9 @@ import pandas as pd
 import io
 from datetime import datetime, timedelta
 from utils.db import fetch_table
+from utils.auth import require_pin
+require_pin()
+
 
 
 def export_excel_pretty(df: pd.DataFrame) -> bytes:

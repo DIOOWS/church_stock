@@ -2,6 +2,9 @@ import streamlit as st
 import pandas as pd
 from utils.db import fetch_table, insert_row, update_row, delete_row
 from utils.calculations import analyze_basket
+from utils.auth import require_pin
+require_pin()
+
 
 st.title("🧺 Tipos de Cesta — Cadastro e Receita")
 

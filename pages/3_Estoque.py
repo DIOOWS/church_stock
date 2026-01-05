@@ -2,6 +2,9 @@ import streamlit as st
 import pandas as pd
 from utils.db import fetch_table
 from utils.operations import add_stock
+from utils.auth import require_pin
+require_pin()
+
 
 st.title("📥 Estoque — Entrada / Ajuste")
 

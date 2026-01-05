@@ -2,6 +2,9 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime, timedelta
 from utils.db import fetch_table
+from utils.auth import require_pin
+require_pin()
+
 
 st.title("📊 Relatórios — Entregas e Exportação")
 
