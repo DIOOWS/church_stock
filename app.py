@@ -1,28 +1,48 @@
-from dotenv import load_dotenv
-load_dotenv()
-
 import streamlit as st
 import os
 
-st.set_page_config(page_title="Controle de Cestas - Igreja", layout="wide")
+def require_pin(app_name="Atitude Stock - Igreja", logo_path="assets/logo.png"):
+    pin = os.getenv("APP_PIN")
 
-pin = os.getenv("APP_PIN")
+    # 🔓 Sem PIN = livre
+    if not pin:
+        st.sidebar.success("🔓 Acesso livre (sem PIN)")
+        return True
 
-if pin:
     if "pin_ok" not in st.session_state:
         st.session_state.pin_ok = False
 
-    if not st.session_state.pin_ok:
-        st.title("🔐 Acesso")
-        typed = st.text_input("Digite o PIN de acesso", type="password")
-        if st.button("Entrar"):
-            if typed == pin:
-                st.session_state.pin_ok = True
-                st.experimental_rerun()
-            else:
-                st.error("PIN incorreto.")
-        st.stop()
+    # ✅ Já autenticado
+    if st.session_state.pin_ok:
+        st.sidebar.success("✅ Acesso liberado")
+        st.sidebar.caption(app_name)
 
-st.title("✅ Controle de Cestas Básicas")
-st.write("Use o menu lateral para navegar.")
-st.success("Sistema pronto: Dashboard, Produtos, Estoque, Cestas, Líderes, Famílias, Entregas e Relatórios.")
+        if st.sidebar.button("🚪 Sair", use_container_width=True):
+            st.session_state.pin_ok = False
+            st.experimental_rerun()
+
+        return True
+
+    # ✅ Tela de login
+    st.markdown("<div style='text-align:center;'>", unsafe_allow_html=True)
+
+    if logo_path and os.path.exists(logo_path):
+        st.image(logo_path, width=200)
+
+    st.markdown(f"<h1>🔐 Acesso Restrito</h1>", unsafe_allow_html=True)
+    st.markdown(f"<p style='color:#666;'>{app_name}<br>Somente equipe autorizada.</p>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    st.info("Digite o PIN para acessar o sistema.")
+
+    typed = st.text_input("PIN", type="password", placeholder="Digite o PIN de acesso")
+
+    if st.button("✅ Entrar", use_container_width=True):
+        if typed == pin:
+            st.session_state.pin_ok = True
+            st.experimental_rerun()
+        else:
+            st.error("❌ PIN incorreto.")
+
+    st.caption("🔒 Segurança ativa: acesso protegido por PIN.")
+    st.stop()
