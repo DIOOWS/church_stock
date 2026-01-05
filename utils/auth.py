@@ -3,22 +3,30 @@ import os
 import base64
 
 
-def _get_base64_image(path: str) -> str:
-    with open(path, "rb") as f:
-        return base64.b64encode(f.read()).decode()
+def _get_base64_image(path: str) -> str | None:
+    try:
+        with open(path, "rb") as f:
+            return base64.b64encode(f.read()).decode()
+    except Exception:
+        return None
 
 
 def require_pin(
     app_name="Atitude Stock - Igreja",
     logo_path="assets/logo.png",
     version="v1.0.0",
-    contact="Suporte: (21) 99999-9999"
+    whatsapp="21994391902",
+    developer="Diogo Silva"
 ):
-    pin = os.getenv("APP_PIN")
 
-    # ==========================
-    # ✅ CSS GLOBAL (header + logo circular + badge + logout + rodapé)
-    # ==========================
+    pin = os.getenv("APP_PIN")
+    w = str(whatsapp).strip()
+    whatsapp_link = f"https://wa.me/{w}"
+
+    display = w
+    if len(w) >= 11:
+        display = f"({w[:2]}) {w[2:7]}-{w[7:]}"
+
     st.markdown(
         """
         <style>
@@ -84,7 +92,6 @@ def require_pin(
             margin: 10px 0px !important;
         }
 
-        /* ✅ Rodapé fixo no sidebar */
         .sidebar-footer {
             position: fixed;
             bottom: 12px;
@@ -94,41 +101,44 @@ def require_pin(
             text-align: center;
             font-size: 12px;
             color: rgba(255,255,255,0.55);
-            line-height: 1.25;
+            line-height: 1.35;
             z-index: 9999;
         }
 
         .sidebar-footer .footer-version {
-            font-weight: 800;
-            color: rgba(255,255,255,0.75);
-            margin-bottom: 2px;
+            font-weight: 900;
+            color: rgba(255,255,255,0.78);
+            margin-bottom: 3px;
         }
 
         .sidebar-footer .footer-contact {
+            font-weight: 700;
+            color: rgba(255,255,255,0.70);
+            margin-bottom: 3px;
+        }
+
+        .sidebar-footer .footer-dev {
             font-weight: 600;
-            color: rgba(255,255,255,0.65);
+            color: rgba(255,255,255,0.60);
         }
 
         .sidebar-footer a {
-            color: rgba(255,255,255,0.75);
+            color: rgba(255,255,255,0.78);
             text-decoration: none;
         }
         .sidebar-footer a:hover {
             text-decoration: underline;
         }
-
         </style>
         """,
         unsafe_allow_html=True
     )
 
-    # ==========================
-    # ✅ SIDEBAR HEADER SEMPRE VISÍVEL
-    # ==========================
+    # ✅ SIDEBAR: header sempre visível
     with st.sidebar:
         img_html = ""
-        if logo_path and os.path.exists(logo_path):
-            img64 = _get_base64_image(logo_path)
+        img64 = _get_base64_image(logo_path)
+        if img64:
             img_html = f"""
             <div class="sidebar-logo">
                 <img src="data:image/png;base64,{img64}">
@@ -145,41 +155,38 @@ def require_pin(
             unsafe_allow_html=True
         )
 
-        # ✅ Rodapé fixo sempre visível
         st.markdown(
             f"""
             <div class="sidebar-footer">
                 <div class="footer-version">📦 {version}</div>
-                <div class="footer-contact">📞 {contact}</div>
+                <div class="footer-contact">📞 <a href="{whatsapp_link}" target="_blank">WhatsApp: {display}</a></div>
+                <div class="footer-dev">👨‍💻 Desenvolvedor: {developer}</div>
             </div>
             """,
             unsafe_allow_html=True
         )
 
-    # 🔓 Se não existe PIN, deixa livre
+    # 🔓 sem PIN = livre
     if not pin:
         with st.sidebar:
             st.success("🔓 Acesso livre (sem PIN)")
         return True
 
-    # Estado inicial
     if "pin_ok" not in st.session_state:
         st.session_state.pin_ok = False
 
-    # ✅ Se autenticado, sidebar mostra badge + logout
+    # ✅ logado
     if st.session_state.pin_ok:
         with st.sidebar:
-            st.markdown(
-                '<div class="sidebar-header"><span class="sidebar-badge">✅ Acesso liberado</span></div>',
-                unsafe_allow_html=True
-            )
+            st.markdown('<div class="sidebar-header"><span class="sidebar-badge">✅ Acesso liberado</span></div>',
+                        unsafe_allow_html=True)
             if st.button("🚪 Sair", use_container_width=True):
                 st.session_state.clear()
-                st.experimental_rerun()
+                st.rerun()
             st.markdown("---")
         return True
 
-    # ✅ Se NÃO autenticado: esconder navegação do menu
+    # ✅ não logado: esconder menu
     st.markdown(
         """
         <style>
@@ -189,7 +196,6 @@ def require_pin(
         unsafe_allow_html=True
     )
 
-    # ✅ Tela PIN
     st.title("🔐 Acesso Restrito")
     st.caption("Somente equipe autorizada.")
     st.info("Digite o PIN para acessar o sistema.")
@@ -201,12 +207,12 @@ def require_pin(
         login_btn = st.button("✅ Entrar", use_container_width=True)
     with col2:
         if st.button("🔄 Limpar", use_container_width=True):
-            st.experimental_rerun()
+            st.rerun()
 
     if login_btn:
         if typed == pin:
             st.session_state.pin_ok = True
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.error("❌ PIN incorreto")
 
